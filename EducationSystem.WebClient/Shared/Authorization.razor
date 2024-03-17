@@ -1,0 +1,69 @@
+﻿@page "/authorization"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Headers;
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
+<link rel="stylesheet" href="css/AuthStyle.css">
+
+<body>
+    <div class="screen-1">
+        <h1 class="Welcome">Добро пожаловать</h1>
+        
+            <EditForm Model="user">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="email">
+                    <label for="email">Логин </label>
+                    <InputText @bind-Value="user.Login" DisplayName="Логин"></InputText>
+                </div>
+                <br>
+                <div class="password">
+                    <label for="password">Пароль</label>
+                    <InputText @bind-Value="user.Password" DisplayName="Пароль"></InputText>
+                </div>
+            </EditForm>
+        
+        <button class="login" @onclick="MethodAuthorization">Войти </button>
+        <div class="footer">При возникновение проблем со входом, обратитесь к техническому администратору</div>
+        @if (Output.Error==true)
+        {
+            <div class="error">@Output.ErrorMessage</div>
+            <div class="error">@Output.ErrorInfo</div>
+        }
+    </div>
+    
+</body>
+
+
+@code {
+    private UserDto user = new UserDto();
+    private Response<string>? Output=new Response<string>();
+
+    private Response<SchoolDto> response = new();
+
+    private async Task MethodAuthorization()
+    {
+        //http://localhost:9730/Auth/AuthenticateAsync?login=we&password=we
+        Output = await Http.GetFromJsonAsync<Response<string>>($"http://localhost:9730/Auth/AuthenticateAsync?login={user.Login}&password={user.Password}");
+        if (Output.Error==false)
+        {
+            ClientInfo.Login(Output.Value);
+            Response<UserDto> userDto = await Http.GetFromJsonAsync<Response<UserDto>>($"http://localhost:9730/Auth/FindByName?login={user.Login}");
+            ClientInfo.AddClientInfo(userDto.Value);
+            if (ClientInfo.UserRole == "admin")
+                Navigation.NavigateTo("mainAdmin");
+            if (ClientInfo.UserRole == "student")
+                Navigation.NavigateTo("mainStudent");
+            if (ClientInfo.UserRole == "teacher")
+                Navigation.NavigateTo("mainTeacher");
+        }
+
+        //CreatedClass = await Http.GetFromJsonAsync<Response<SchoolClassDto>>(uml+"number="+schoolClass.Number.ToString()+"&character="+schoolClass.Character+"&curriculumId="+schoolClass.CurriculumId.ToString());
+    }
+}
+

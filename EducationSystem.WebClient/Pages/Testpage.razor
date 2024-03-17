@@ -1,0 +1,54 @@
+﻿@page "/test"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<div style="float:left;">
+
+	<EditForm Model="newAssessment">
+		<DataAnnotationsValidator />
+		<ValidationSummary />
+		<label class="label-text" for="newAssessment">Введите название </label>
+		<table border="1" cellspacing="0" cellpadding="10">
+			<tr>
+				<th>Заголовок</th>
+				<td>Заголовок</td>
+				<td>Заголовок</td>
+			</tr>
+			<tr>
+				<th>Текст</th>
+				<td>Текст</td>
+				<td>Текст</td>
+			</tr>
+			<tr>
+				<th>текст</th>
+				@foreach (var item in newAssessment)
+				{
+					<td><InputNumber class="input-text" @bind-Value="item.Point" DisplayName="Название"></InputNumber></td>
+				}
+			</tr>
+		</table>
+	</EditForm>
+
+
+</div>
+
+
+@code {
+	AssessmentDto[]? newAssessment =new AssessmentDto[2];
+
+	protected override async Task OnInitializedAsync()
+	{
+		for (int i = 0; i < newAssessment.Length; i++)
+		{
+			newAssessment[i] = new AssessmentDto();
+			newAssessment[i].Point = 0;
+		}
+	}
+}
+

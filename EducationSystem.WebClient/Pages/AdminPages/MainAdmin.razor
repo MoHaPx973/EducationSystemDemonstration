@@ -1,0 +1,61 @@
+﻿@page "/mainAdmin"
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/AdminStyle.css">
+
+<AdminNavMenu />
+<body class="main">
+<table class="table">
+  <tr><td class="border"></td><td class="border"></td></tr> 
+  <tr>
+    <th>Школы</th>
+            <td>
+                <NavLink class="nav-link" href="mainAdmin/GetSchool">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Просмотреть список
+                </NavLink>
+            </td>
+        
+  </tr> 
+    <td></td>
+        <td>
+            <NavLink class="nav-link" href="mainAdmin/CreateSchool">
+                <span class="oi oi-plus" aria-hidden="true"></span> Создать
+            </NavLink>
+        </td>
+  <tr>
+    <td></td>
+            <td>
+                <NavLink class="nav-link" href="mainAdmin/UpdateSchool">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Изменить
+                </NavLink>
+            </td>
+  </tr> 
+
+    </table>
+
+    <div>a</div>
+    @if (ClientInfo.UserName!=null)
+    {
+        <div>@ClientInfo.UserName</div>
+        <div>@ClientInfo.IsAuthenticated</div>
+    }
+    <div>b</div>
+
+</body>
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        if (ClientInfo.IsAuthenticated==false)
+        {
+            Navigation.NavigateTo("authorization");
+        }
+    }
+
+    //<div>@ClientInfo.LoginUserInfo.Login</div>
+    //<div>@ClientInfo.LoginUserInfo.Password</div>
+    //<div>@ClientInfo.LoginUserInfo.Role</div>
+}

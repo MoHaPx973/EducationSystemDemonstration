@@ -1,0 +1,94 @@
+﻿@page "/mainAdmin/UpdateSchoolHelper/{schoolId:int}"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<AdminNavMenu />
+<body class="main">
+
+@if (response==null)
+{
+	<div>Loading...</div>
+}
+else if (response.Value!=null)
+{
+	<h4>Изменение школы @response.Value.Name в городе @response.Value.City</h4>
+
+	<EditForm Model="SelectedSchool">
+		<DataAnnotationsValidator />
+		<ValidationSummary />
+		<div>
+			<label for="email">Введите название </label>
+			<InputText @bind-Value="SelectedSchool.Name" DisplayName="Название"></InputText>
+		</div>
+		<br>
+		<div>
+			<label for="password">Введите город</label>
+			<InputText @bind-Value="SelectedSchool.City" DisplayName="Город"></InputText>
+		</div>
+	</EditForm>
+
+	<button @onclick="MethodUpdateSchool">Изменить</button>
+
+	if (startwork==true)
+	{
+		if (UpdatedSchool.Error == true)
+		{
+			<div class="error">@UpdatedSchool.ErrorMessage</div>
+			<div class="error">@UpdatedSchool.ErrorInfo</div>
+		}
+		else if (UpdatedSchool.Error == false)
+		{
+			<div class="success">Данные школы успешно изменены</div>
+		}
+	}
+	
+}
+
+</body>
+@code {
+	[Parameter]
+	public int schoolId { get; set; }
+
+	SchoolDto SelectedSchool = new();
+	Response<SchoolDto> response = new();
+	Response<SchoolDto> UpdatedSchool = new();
+
+	bool startwork;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (ClientInfo.IsAuthenticated == false)
+		{
+			Navigation.NavigateTo("authorization");
+		}
+		try
+		{
+			response = await ClientInfo.Http.GetFromJsonAsync<Response<SchoolDto>>($"http://localhost:9730/School/FindById?id={schoolId}");
+
+		}
+		catch
+		{
+			Navigation.NavigateTo("mainAdmin/UpdateSchool");
+		}
+	}
+
+	private async Task MethodUpdateSchool()
+	{
+		UpdatedSchool = new();
+		//http://localhost:9730/School/Update?id=1
+		using HttpResponseMessage HttpResponse = await ClientInfo.Http.PostAsJsonAsync($"http://localhost:9730/School/Update?id={schoolId}", SelectedSchool);
+		HttpResponse.EnsureSuccessStatusCode();
+		UpdatedSchool = await HttpResponse.Content.ReadFromJsonAsync<Response<SchoolDto>>();
+		response = UpdatedSchool;
+		startwork = true;
+	}
+
+
+}

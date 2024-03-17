@@ -1,0 +1,72 @@
+﻿@page "/mainAdmin/CreateSchool"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<AdminNavMenu />
+<body class="main">
+<h1>Создание новой школы</h1>
+<EditForm Model="schoolDto">
+    <DataAnnotationsValidator />
+        <ValidationSummary />
+             <div>
+            <label class="label-text" for="email">Введите название </label>
+            <InputText class="input-text" @bind-Value="schoolDto.Name" DisplayName="Название"></InputText>
+            </div>
+            <br>
+                <div>
+            <label class="label-text" for="password">Введите город</label>
+            <InputText class="input-text" @bind-Value="schoolDto.City" DisplayName="Город"></InputText>
+            </div>
+</EditForm>
+
+<button @onclick="MethodCreateSchool">Создать</button>
+
+@if (CreatedSchool != null)
+{
+    if ((CreatedSchool.Value == null)||(CreatedSchool.Error==true))
+    {
+        <div class="error">@CreatedSchool.ErrorMessage</div>
+        <div class="error">@CreatedSchool.ErrorInfo</div>
+    }
+    else
+    {
+        <div class="success">Школа @CreatedSchool.Value.Name в городе @CreatedSchool.Value.City успешно создана</div>
+    }
+}
+</body>
+
+
+@code {
+    SchoolDto schoolDto = new SchoolDto();
+    Response<SchoolDto> CreatedSchool = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ClientInfo.IsAuthenticated == false)
+        {
+            Navigation.NavigateTo("authorization");
+        }
+    }
+
+    private async Task MethodCreateSchool()
+    {
+        CreatedSchool = new();
+        try
+        {
+            using HttpResponseMessage HttpResponse = await ClientInfo.Http.PostAsJsonAsync("http://localhost:9730/School/Create", schoolDto);
+            HttpResponse.EnsureSuccessStatusCode();
+            CreatedSchool = await HttpResponse.Content.ReadFromJsonAsync<Response<SchoolDto>>();
+        }
+        catch
+        {
+            CreatedSchool = new() {Error=true,ErrorMessage="Ошибка создания со стороны клиента" };
+        }
+
+    }
+}

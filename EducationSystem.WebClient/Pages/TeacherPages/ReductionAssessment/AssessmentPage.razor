@@ -1,0 +1,177 @@
+﻿@page "/assessmentPage/{classId:int}"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<TeacherNavMenu/>
+<body class="text-page">
+	@if ((_persons == null) || (_schoolClass == null) || (_schoolItems == null))
+	{
+		<div>Загрузка...</div>
+	}
+	else if ((_persons.Value==null)||(_persons.Value.Count()==0))
+	{
+		<div>Список класса пуст</div>	
+	}
+	else if ((_persons.Value != null) && (_schoolClass.Value != null) && (_schoolItems.Value != null))
+	{
+		<EditForm Model="_itemSelected">
+			<DataAnnotationsValidator />
+			<ValidationSummary />
+			<div class="box">
+				<InputSelect @bind-Value=_itemSelected.Id id="item" class="inputSelect">
+					@foreach (var item in _schoolItems.Value)
+					{
+						<option value="@item.Id">@item.Name</option>
+					}
+				</InputSelect>
+			</div>
+		</EditForm>
+		<br />
+		<button class="button-20" @onclick="AssessmentInfo">Найти </button>
+		<br />
+
+		@if ((selected)&&(_assessmentsStudents!=null))
+		{
+			<div style="float:left">
+				
+					<table class="OutputTable">
+						<thead>
+							<tr>
+								<th>Ученик</th>
+							</tr>
+						</thead>
+						<tbody>
+							
+							@for (int i = 0; i < _persons.Value.Count(); i++)
+							{
+								
+							<tr>
+								<td>@_persons.Value.ElementAt(i).Surname @_persons.Value.ElementAt(i).Name</td>
+								@if (_assessmentsStudents[i].Value!=null)
+								@foreach (var item in _assessmentsStudents[i].Value)
+								{
+									<td>@item.Point</td>
+								}
+							</tr>
+							}
+						</tbody>
+					</table>
+				
+			</div>
+			<br/>
+			@if (_newAssessment!=null)
+			{
+				<EditForm Model="_newAssessment">
+					<DataAnnotationsValidator />
+					<ValidationSummary />
+						@foreach (var item in _newAssessment)
+						{
+						<div class="box">
+							<InputSelect @bind-Value=item.Point id="assessment" class="inputSelect">
+								<option value=0>-</option>
+								<option value=2>2</option>
+								<option value=3>3</option>
+								<option value=4>4</option>
+								<option value=5>5</option>
+							</InputSelect>
+						</div>
+						}
+				</EditForm>
+				@*foreach (var item in _newAssessment)
+				{
+					<div>@item.Point</div>
+				}
+				<div>@($"http://localhost:9730/Assessment/Create?studentId={_persons.Value.ElementAt(0).Id}&teacherId={ClientInfo.PersonId}&schoolClassId={classId}&itemId={_itemSelected.Id}&date={String.Format("{0:MM/dd/yyyy}", DateTime.Now)}&point={_newAssessment[0].Point}")</div>
+				*@
+				<button class="button-20" @onclick="GivePoint">Поставить оценку</button>
+			}
+		}
+	}
+	else
+	{
+		<div class="error">Error</div>
+	}
+</body>
+
+@code {
+	[Parameter]
+	public int classId { get; set; }
+	SchoolItemDto _itemSelected = new();
+	bool selected;
+	int count;
+
+	AssessmentDto[]? _newAssessment;
+
+
+	Response<IEnumerable<PersonDto>> _persons = new();
+	Response<SchoolClassDto> _schoolClass = new();
+	Response<IEnumerable<SchoolItemDto>> _schoolItems = new();
+	Response<IEnumerable<AssessmentDto>> _assessmentsStudent = new();
+	List<Response<IEnumerable<AssessmentDto>>> _assessmentsStudents = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		count = 0;
+		selected = false;
+		//if (ClientInfo.IsAuthenticated == false)
+		//{
+		//	Navigation.NavigateTo("authorization");
+		//}
+		try
+		{
+			_persons = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<PersonDto>>>($"http://localhost:9730/Person/GetAllByClassId?classId={classId}");
+			_schoolClass = await ClientInfo.Http.GetFromJsonAsync<Response<SchoolClassDto>>($"http://localhost:9730/SchoolClass/FindById?id={classId}");
+			_schoolItems = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolItemDto>>>($"http://localhost:9730/SchoolItem/GetAllByCurriculum?curriculumId={_schoolClass.Value.CurriculumId}");
+			_newAssessment = new AssessmentDto[_persons.Value.Count()];
+			for (int i = 0; i < _newAssessment.Length; i++)
+			{
+				_newAssessment[i] = new AssessmentDto();
+				_newAssessment[i].Point = 0;
+			}
+
+		}
+		catch
+		{
+			_persons = new Response<IEnumerable<PersonDto>>("Ошибка чтения данных на сайте", "ErrorGetDataBase on studentListPage");
+		}
+	}
+
+	private async Task AssessmentInfo()
+	{
+		selected = false;
+		_assessmentsStudent = new();
+		_assessmentsStudents = new();
+		if (_persons.Value!=null)
+			foreach (var item in _persons.Value)
+			{
+				_assessmentsStudent = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<AssessmentDto>>>($"http://localhost:9730/Assessment/GetAllByStudentIdItemId?studentId={item.Id}&itemId={_itemSelected.Id}");
+				if (_assessmentsStudent != null)
+					_assessmentsStudents.Add(_assessmentsStudent);
+				else
+					_assessmentsStudents.Add(new Response<IEnumerable<AssessmentDto>>("Оценки отсутствуют","point count 0"));
+			}
+		selected = true;
+	}
+	private async Task GivePoint()
+	{
+		//http://localhost:9730/Assessment/Create?studentId=2&teacherId=1&schoolClassId=3&itemId=1&date=18.12.2022&point=2
+		//http://localhost:9730/Assessment/Create?studentId=6&teacherId=1&schoolClassId=3&itemId=2&date=12.12.2023&point=4
+		Response<AssessmentDto> _assessment=new();
+
+		for (int i = 0; i < _persons.Value.Count(); i++)
+		{
+			if (_newAssessment[i].Point!=0)
+			{
+				_assessment = await ClientInfo.Http.GetFromJsonAsync<Response<AssessmentDto>>
+				(($"http://localhost:9730/Assessment/Create?studentId={_persons.Value.ElementAt(i).Id}&teacherId={ClientInfo.PersonId}&schoolClassId={classId}&itemId={_itemSelected.Id}&date={String.Format("{0:MM/dd/yyyy}", DateTime.Now)}&point={_newAssessment[i].Point}"));
+			}
+		}
+		
+	}
+}

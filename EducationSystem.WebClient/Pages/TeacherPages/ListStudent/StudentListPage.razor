@@ -1,0 +1,73 @@
+﻿@page "/studentListPage/{classId:int}"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<TeacherNavMenu/>
+<body class="text-page">
+	@if ((_persons == null)||(_schoolClass==null))
+	{
+		<div>Загрузка</div>
+	}
+	else if ((_persons.Value!=null)&&(_schoolClass.Value!=null)&&(_persons.Error!=true))
+	{
+		<h2>Список класса @_schoolClass.Value.Number @_schoolClass.Value.Letter</h2>
+		<table class="OutputTable">
+			<thead>
+				<tr>
+					<th>Фамилия</th>
+					<th>Имя</th>
+				</tr>
+			</thead>
+			@foreach (var item in _persons.Value)
+			{
+
+				<tbody>
+					<tr>
+						<td>@item.Name</td>
+						<td>@item.Surname</td>
+						<td><a href="assessmentStudent/@item.Id">Просмотр оценок</a></td>
+					</tr>
+				</tbody>
+			}
+		</table>
+	}
+	else
+	{
+		<div class="error">@_persons.ErrorMessage </div>
+		<div class="error">@_persons.ErrorInfo </div>
+	}
+</body>
+
+@code {
+	[Parameter]
+	public int classId { get; set; }
+
+	Response<IEnumerable<PersonDto>> _persons = new();
+	Response<SchoolClassDto> _schoolClass = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (ClientInfo.IsAuthenticated == false)
+		{
+			Navigation.NavigateTo("authorization");
+		}
+		try
+		{
+			//http://localhost:9730/Person/GetAllByClassId?classId=3
+			//http://localhost:9730/SchoolClass/FindById?id=3
+
+			_persons = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<PersonDto>>>($"http://localhost:9730/Person/GetAllByClassId?classId={classId}");
+			_schoolClass = await ClientInfo.Http.GetFromJsonAsync<Response<SchoolClassDto>>($"http://localhost:9730/SchoolClass/FindById?id={classId}");
+		}
+		catch
+		{
+			_persons = new Response<IEnumerable<PersonDto>>("Ошибка чтения данных на сайте", "ErrorGetDataBase on studentListPage");
+		}
+	}
+}

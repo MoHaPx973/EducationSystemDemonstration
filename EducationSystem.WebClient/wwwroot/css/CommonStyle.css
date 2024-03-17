@@ -1,0 +1,237 @@
+﻿body {
+    font-family: "Calibri", sans-serif;
+    background: #dde5f4;
+}
+
+.text-page {
+    margin-left: 50px;
+}
+
+.OutputTable {
+
+    margin-bottom: 20px;
+    border: 1px solid #dddddd;
+    border-collapse: collapse;
+}
+
+    .OutputTable th {
+        font-weight: bold;
+        padding: 5px;
+        background: #efefef;
+        border: 1px solid #dddddd;
+    }
+
+    .OutputTable td {
+        border: 1px solid #dddddd;
+        padding: 5px;
+    }
+
+/* 
+    input text
+*/
+.box {
+
+}
+
+    .box select {
+        background-color: #3e4684;
+        color: white;
+        padding: 12px;
+        width: 250px;
+        border: none;
+        font-size: 20px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+
+    }
+
+    .box::before {
+        content: "\f13a";
+        font-family: FontAwesome;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 20%;
+        height: 100%;
+        text-align: center;
+        font-size: 28px;
+        line-height: 45px;
+        color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+    }
+
+    .box:hover::before {
+        color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .box select option {
+        padding: 30px;
+    }
+
+
+/* 
+    button 
+
+*/
+.button-20 {
+    appearance: button;
+    background-color: #3e4684;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(255, 255, 255, 0));
+    border: 1px solid #4D4AE8;
+    border-radius: 1rem;
+    box-shadow: rgba(255, 255, 255, 0.15) 0 1px 0 inset,rgba(46, 54, 80, 0.075) 0 1px 1px;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    margin: 0;
+    padding: .5rem 1rem;
+    text-align: center;
+    text-transform: none;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+}
+
+.button-20:focus:not(:focus-visible),
+.button-20:focus {
+    outline: 0;
+}
+
+.button-20:hover {
+    background-color: #3733E5;
+    border-color: #3733E5;
+}
+
+.button-20:focus {
+    background-color: #413FC5;
+    border-color: #3E3BBA;
+    box-shadow: rgba(255, 255, 255, 0.15) 0 1px 0 inset, rgba(46, 54, 80, 0.075) 0 1px 1px, rgba(104, 101, 235, 0.5) 0 0 0 .2rem;
+}
+
+.button-20:active {
+    background-color: #3E3BBA;
+    background-image: none;
+    border-color: #3A38AE;
+    box-shadow: rgba(46, 54, 80, 0.125) 0 3px 5px inset;
+}
+
+    .button-20:active:focus {
+        box-shadow: rgba(46, 54, 80, 0.125) 0 3px 5px inset, rgba(104, 101, 235, 0.5) 0 0 0 .2rem;
+    }
+
+.button-20:disabled {
+    background-image: none;
+    box-shadow: none;
+    opacity: .65;
+    pointer-events: none;
+}
+
+/*
+    оценки
+*/
+.point-five {
+    background: rgba(84, 247, 69,0.8);
+    width: 50px;
+}
+
+.point-four {
+    background: rgba(80, 199, 70,0.8);
+    width: 50px;
+}
+
+.point-three {
+    background: rgba(255, 193, 69,0.8);
+    width: 50px;
+}
+
+.point-two {
+    background: rgba(255, 66, 66,0.8);
+    width: 50px;
+}
+/*
+    оценки
+*/
+
+
+
+.error {
+    color: red;
+}
+
+.success{
+    color:green;
+}
+
+.text-body{
+    margin-left:30px;
+    font-family:Calibri;
+}
+
+.img-logo {
+    height: 50px;
+    width: 50px;
+    align-items: center;
+    margin-left:40px;
+}
+
+.name {
+    color: darkblue;
+}
+
+.person_info {
+    color: rebeccapurple;
+}
+
+/*
+    NavMenu
+*/
+.sidenav {
+    height: 80px;
+    width: 100%;
+    position: sticky;
+    display: flex;
+    gap: 20px;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background: #3e4684;
+    overflow-x: hidden;
+    align-items: center;
+}
+
+    .sidenav a {
+        padding: 6px 8px 6px 16px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #FFFFFF;
+        display: block;
+    }
+
+        .sidenav a:hover {
+            color: #C0C0C0;
+        }
+
+        .main-logo
+        {
+            font-size:14px;
+        }
+.main {
+    font-size: 28px; /* Increased text to enable scrolling */
+}
+
+@@ media screen and (max-height: 450px) {
+    .sidenav {
+        padding-top: 15px;
+    }
+
+        .sidenav a {
+            font-size: 18px;
+        }
+}

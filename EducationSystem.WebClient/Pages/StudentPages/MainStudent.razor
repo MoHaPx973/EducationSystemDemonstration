@@ -1,0 +1,63 @@
+﻿@page "/mainStudent"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+
+
+<StudentNavMenu />
+<body class="main">
+    <div class="text-page">
+    
+    @if ((_student==null)||(_class==null))
+    {
+        <p>Загрузка... </p>
+    }
+    else if ((_student.Value!=null)&&(_class.Value!=null))
+    {
+            <p>
+                <img src="image/student_logo.png" width="100" height="100" border="5px" border-color="rebeccapurple" alt="img-avatar" align="left">
+                <h2 class="name">@_student.Value.Surname @_student.Value.Name</h2>
+            </p>
+            <br />
+            <div class="person_info">
+                Информация об ученике:
+                <div>Класс @_class.Value.Number @_class.Value.Letter</div>
+            </div>
+    }
+    </div>
+</body>
+   
+
+
+
+@code {
+    Response<PersonDto> _student =new();
+    Response<SchoolClassDto> _class = new();
+    protected override async Task OnInitializedAsync()
+    {
+        //_student = await ClientInfo.Http.GetFromJsonAsync<Response<PersonDto>>($"http://localhost:9730/Person/FindById?id={ClientInfo.PersonId}");
+
+        if (ClientInfo.IsAuthenticated == false)
+        {
+            Navigation.NavigateTo("authorization");
+        }
+        try
+        {
+            _student = await ClientInfo.Http.GetFromJsonAsync<Response<PersonDto>>($"http://localhost:9730/Person/FindById?id={ClientInfo.PersonId}");
+            //_class = await ClientInfo.Http.GetFromJsonAsync<Response<SchoolClassDto>>($"http://localhost:9730/SchoolClass/GetClassByStudentId?studentId={ClientInfo.PersonId}");
+            _class = await ClientInfo.Http.GetFromJsonAsync<Response<SchoolClassDto>>($"http://localhost:9730/SchoolClass/GetClassByStudentId?studentId={_student.Value.Id}");
+        }
+        catch
+        {
+            Navigation.NavigateTo("authorization");
+        }
+
+        //CurrentPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolDto>>>($"http://localhost:9730/School/GetPageEnumerable?start={start}&count={count}");
+
+    }
+}

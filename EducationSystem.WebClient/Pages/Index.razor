@@ -1,0 +1,25 @@
+﻿@page "/"
+@using EducationSystem.WebClient.Shared
+
+<AdminNavMenu />
+<div class="main">
+<h1>Hello, world!</h1>
+
+<div class="nav-item px-3">
+    <NavLink class="nav-link" href="authorization">
+        <span class="oi oi-plus" aria-hidden="true"></span> Authorization
+    </NavLink>
+
+
+</div>
+</div>
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        if (ClientInfo.IsAuthenticated == false)
+        {
+            Navigation.NavigateTo("authorization");
+        }
+    }
+}

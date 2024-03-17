@@ -1,0 +1,124 @@
+﻿@page "/mainAdmin/GetSchool"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@inject NavigationManager Navigation
+
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<AdminNavMenu/>
+<body class="main">
+	<h1>Список школ</h1>
+	@if (CurrentPage == null)
+	{
+		<div>Загрузка</div>
+	}
+	else
+	{
+		@if (CurrentPage.Value != null)
+		{
+			<table class="OutputTable">
+					<thead>
+						<tr>
+							<th>Название</th>
+							<th>Город</th>
+						</tr>
+					</thead>
+				@foreach (var item in CurrentPage.Value)
+			{
+
+					<tbody>
+						<tr>
+							<td>@item.Name</td>
+							<td>@item.City</td>
+						</tr>
+					</tbody>
+			
+			}
+			</table>
+		}
+		else
+		{
+			<div>Список школ пуст</div>
+		}
+	}
+	<button class="login" @onclick="PreviousPage">Предыдущая страница </button>
+	<button class="login" @onclick="NextPage">Следующая страница </button>
+</body>
+
+@code {
+	//http://localhost:9730/School/GetAllEnumerable
+	//http://localhost:9730/School/GetPageEnumerable?start=1&count=10
+	Response<IEnumerable<SchoolDto>> CurrentPage = new(); // текущая страница
+	Response<IEnumerable<SchoolDto>> SearchedPage = new(); // искомая страница
+	int start = 0;
+	int count = 10;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (ClientInfo.IsAuthenticated==false)
+		{
+			Navigation.NavigateTo("authorization");
+		}
+		try
+		{
+			CurrentPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolDto>>>($"http://localhost:9730/School/GetPageEnumerable?start={start}&count={count}");
+		}
+		catch
+		{
+			Navigation.NavigateTo("authorization");
+		}
+	}
+	private async Task NextPage()
+	{
+		start++;
+		try
+		{
+			SearchedPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolDto>>>($"http://localhost:9730/School/GetPageEnumerable?start={start}&count={count}");
+			if (SearchedPage.Value!=null)
+			{
+				CurrentPage = SearchedPage;
+			}
+			else
+			{
+				SearchedPage = new();
+				start--;
+			}
+		}
+		catch
+		{
+
+		}
+	}
+	private async Task PreviousPage()
+	{
+		start--;
+		if (start >= 0)
+		{
+			try
+			{
+				SearchedPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolDto>>>($"http://localhost:9730/School/GetPageEnumerable?start={start}&count={count}");
+				if (SearchedPage.Value != null)
+				{
+					CurrentPage = SearchedPage;
+				}
+				else
+				{
+					SearchedPage = new();
+					start++;
+				}
+			}
+			catch
+			{
+
+			}
+		}
+		else
+		{
+			start++;
+		}
+
+	}
+}

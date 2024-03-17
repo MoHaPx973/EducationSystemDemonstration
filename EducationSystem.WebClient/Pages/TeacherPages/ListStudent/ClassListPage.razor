@@ -1,0 +1,150 @@
+﻿@page "/classListPage"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+
+<TeacherNavMenu/>
+<body class="text-page">
+	<h1 class="name">Список классов</h1>
+	<EditForm Model="_schoolClassDto">
+		<DataAnnotationsValidator />
+		<ValidationSummary />
+		<div class="box">
+		<InputSelect @bind-Value=_schoolClassDto.YearFormation id="year" class="inputSelect">
+				<option value="2020">2020</option>
+				<option value="2021">2021</option>
+				<option value="2022">2022</option>
+				<option value="2023">2023</option>
+	   </InputSelect>
+		</div>
+	</EditForm>
+	<br/>
+	<button class="button-20" @onclick="YearSelected">Найти </button>
+	<br/>
+	@if (selected)
+	{
+		@if (CurrentPage == null)
+		{
+			<div>Загрузка</div>
+		}
+		else
+		{
+			@if (CurrentPage.Value != null)
+			{
+				<table class="OutputTable">
+					<thead>
+						<tr>
+							<th>Номер</th>
+							<th>Литера</th>
+						</tr>
+					</thead>
+					@foreach (var item in CurrentPage.Value)
+					{
+						<tbody>
+							<tr>
+								<td>@item.Number</td>
+								<td>@item.Letter</td>
+								<td><a href="studentListPage/@item.Id">Список учеников</a></td>
+							</tr>
+						</tbody>
+					}
+				</table>
+			}
+			else
+			{
+				<div>Список классов пуст</div>
+			}
+		}
+	<button class="login" @onclick="PreviousPage">Предыдущая страница </button>
+	<button class="login" @onclick="NextPage">Следующая страница </button>
+	}
+</body>
+
+@code {
+	//http://localhost:9730/SchoolClass/GetPageEnumerable?start=1&count=2
+	//http://localhost:9730/SchoolClass/GetPageEnumerableByYear?start=0&count=10&year=2023
+	Response<IEnumerable<SchoolClassDto>> CurrentPage = new(); // текущая страница
+	Response<IEnumerable<SchoolClassDto>> SearchedPage = new(); // искомая страница
+	SchoolClassDto _schoolClassDto = new();
+	int start = 0;
+	int count = 5;
+	bool selected;
+
+	protected override async Task OnInitializedAsync()
+	{
+		selected = false;
+		_schoolClassDto.YearFormation = 0;
+		if (ClientInfo.IsAuthenticated == false)
+		{
+			Navigation.NavigateTo("authorization");
+		}
+	}
+	private async Task YearSelected()
+	{
+		start = 0;
+		try
+		{
+			CurrentPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolClassDto>>>($"http://localhost:9730/SchoolClass/GetPageEnumerableByYear?start={start}&count={count}&year={_schoolClassDto.YearFormation}");
+		}
+		catch
+		{
+			CurrentPage = null;
+		}
+		selected = true;
+	}
+	private async Task NextPage()
+	{
+		start++;
+		try
+		{
+			SearchedPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolClassDto>>>($"http://localhost:9730/SchoolClass/GetPageEnumerableByYear?start={start}&count={count}&year={_schoolClassDto.YearFormation}");
+			if (SearchedPage.Value != null)
+			{
+				CurrentPage = SearchedPage;
+			}
+			else
+			{
+				SearchedPage = new();
+				start--;
+			}
+		}
+		catch
+		{
+
+		}
+	}
+	private async Task PreviousPage()
+	{
+		start--;
+		if (start >= 0)
+		{
+			try
+			{
+				SearchedPage = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<SchoolClassDto>>>($"http://localhost:9730/SchoolClass/GetPageEnumerableByYear?start={start}&count={count}&year={_schoolClassDto.YearFormation}");
+				if (SearchedPage.Value != null)
+				{
+					CurrentPage = SearchedPage;
+				}
+				else
+				{
+					SearchedPage = new();
+					start++;
+				}
+			}
+			catch
+			{
+
+			}
+		}
+		else
+		{
+			start++;
+		}
+
+	}
+}

@@ -1,0 +1,19 @@
+﻿.table {
+    width: 50%;
+    font-size: 14px;
+}
+
+    .table th {
+        font-weight: bold;
+        padding: 5px;
+        text-align: left;
+    }
+
+    .table td {
+        color: blue;
+        padding: 5px;
+    }
+
+    .table .border {
+        border-bottom: 1px solid black
+    }

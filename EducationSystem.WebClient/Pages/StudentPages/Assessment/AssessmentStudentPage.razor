@@ -1,0 +1,113 @@
+﻿@page "/assessmentStudent/{studentId:int}"
+@using EducationSystem.Shared.Models;
+@using EducationSystem.Shared.OutputData;
+@using EducationSystem.WebClient.Pages.TeacherPages
+@using EducationSystem.WebClient.Shared
+@using EducationSystem.WebClient.StaticHelpers;
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/CommonStyle.css">
+@if (ClientInfo.UserRole=="student")
+{
+    <StudentNavMenu />
+}
+@if (ClientInfo.UserRole == "teacher")
+{
+    <TeacherNavMenu />
+}
+<body class="main">
+    <div class="text-page">
+
+    @if ((_student == null)||(_class==null))
+    {
+        <p>Загрузка... </p>
+    }
+    else if ((_student.Value != null)&&(_class.Value!=null)&&(_student.Error!=true))
+    {
+            <p>
+                <img src="image/student_logo.png" width="100" height="100" border="5px" border-color="rebeccapurple" alt="img-avatar" align="left">
+                <h2 class="name">@_student.Value.Surname @_student.Value.Name</h2>
+            </p>
+            <br />
+            <div class="person_info">
+                Информация об ученике:
+                <div>Класс @_class.Value.Number @_class.Value.Letter</div>
+            </div>
+        }
+        else
+        {
+            <div class="error">@_student.ErrorMessage </div>
+            <div class="error">@_student.ErrorInfo </div>
+        }
+        <br/>
+    @if ((_items==null)||(_assessment==null))
+    {
+        <p>Загрузка</p>
+    }
+    else 
+    {
+        <table class="OutputTable">
+            @for (int i = 0; i < _items.Count; i++)
+            {
+                <tr>
+                    <td width="500px">@_items[i].Value.Name</td>
+                    @foreach (var item in _assessment[i].Value)
+                    {
+                        <td class="@ColorPoint(item.Point)" width="20px">@item.Point</td>
+                    }
+                </tr>
+            }
+        </table>
+    }
+    </div>
+</body>
+
+@code {
+    [Parameter]
+    public int studentId { get; set; }
+
+    Response<PersonDto> _student = new();
+    Response<SchoolClassDto> _class = new();
+    Response<IEnumerable<ItemInCurriculumDto>> _itemsId = new();
+    List<Response<SchoolItemDto>> _items = new ();
+    List<Response<IEnumerable<AssessmentDto>>> _assessment = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ClientInfo.IsAuthenticated == false)
+        {
+            Navigation.NavigateTo("authorization");
+        }
+        try
+        {
+            _student = await ClientInfo.Http.GetFromJsonAsync<Response<PersonDto>>($"http://localhost:9730/Person/FindById?id={studentId}");
+            _class = await ClientInfo.Http.GetFromJsonAsync<Response<SchoolClassDto>>($"http://localhost:9730/SchoolClass/GetClassByStudentId?studentId={studentId}");
+            _itemsId = await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<ItemInCurriculumDto>>>($"http://localhost:9730/ItemInCurriculum/GetByClassId?schoolClassId={_class.Value.Id}");
+            foreach (var item in _itemsId.Value)
+            {
+                _items.Add(await ClientInfo.Http.GetFromJsonAsync<Response<SchoolItemDto>>($"http://localhost:9730/SchoolItem/FindById?id={item.ItemId}"));
+            }
+            //http://localhost:9730/Assessment/GetAllByStudentIdItemId?studentId=2&itemId=2
+            foreach (var item in _itemsId.Value)
+            {
+                _assessment.Add(await ClientInfo.Http.GetFromJsonAsync<Response<IEnumerable<AssessmentDto>>>($"http://localhost:9730/Assessment/GetAllByStudentIdItemId?studentId={_student.Value.Id}&itemId={item.ItemId}"));
+            }
+        }
+        catch
+        {
+            _student = new Response<PersonDto>("Ошибка чтения данных на сайте", "ErrorGetDataBase on studentListPage");
+        }
+    }
+
+    private string ColorPoint(int point)
+    {
+        switch(point)
+        {
+            case 2: return "point-two";
+            case 3: return "point-three";
+            case 4: return "point-four";
+            case 5: return "point-five";
+            default: return "";
+        }
+    }
+}
